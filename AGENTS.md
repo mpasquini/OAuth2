@@ -2,61 +2,88 @@
 
 ## Project Overview
 
-This is a **practical OAuth2 implementation** demonstrating the complete OAuth2 authorization code flow with three main components:
+This is a **practical OAuth2 implementation** demonstrating two OAuth2 flows with three main components:
 
-1. **Authorization Server** - Issues access tokens and refresh tokens
-2. **Resource Server** - Protects API endpoints using OAuth2 tokens
-3. **Client Application** - Requests access on behalf of Resource Owner
+1. **Authorization Server** - Issues tokens for both Authorization Code and Client Credentials flows
+2. **Resource Server** - Protects user APIs and machine APIs using OAuth2 tokens
+3. **Client Application** - Browser web app demonstrating the Authorization Code flow
+
+A CLI script (`scripts/service_client.py`) demonstrates the Client Credentials flow without a web server.
 
 All components are containerized with Docker Compose for local and cloud execution.
+
+## Flows at a Glance
+
+| | Authorization Code | Client Credentials |
+|---|---|---|
+| Who | Human user | Machine / service |
+| Browser redirect | Yes | No |
+| PKCE + State | Yes | No |
+| Refresh token | Yes | No |
+| Token `sub` | User ID | Client ID |
+| Demo component | `client-app/` | `scripts/service_client.py` |
 
 ## Architecture & Components
 
 ### Authorization Server (`/auth-server`)
 - **Tech**: Python FastAPI
-- **Responsibility**: OAuth2 token issuance, user authentication, token validation
+- **Responsibility**: OAuth2 token issuance for both grant types, user authentication, token validation
 - **Key Endpoints**:
-  - `POST /authorize` - Authorization endpoint (initiates OAuth2 flow)
-  - `POST /token` - Token endpoint (exchanges auth code for access token)
-  - `POST /refresh` - Refresh token endpoint
+  - `GET /authorize` - Initiates Authorization Code flow (redirects user to login)
+  - `POST /token` - Token endpoint; handles both `authorization_code` and `client_credentials` grant types
+  - `POST /refresh` - Refresh token endpoint (Authorization Code flow only)
+  - `GET /userinfo` - Returns user profile (requires user token)
+  - `POST /introspect` - Token introspection (works for both token types)
   - `GET /.well-known/oauth-metadata` - OpenID Connect metadata
 - **Database**: SQLite (local) or PostgreSQL (cloud)
 - **Key Files**:
-  - `models.py` - Database models (User, Client, Token, AuthorizationCode)
-  - `security.py` - Token generation, validation, JWT handling
-  - `routes.py` - OAuth2 endpoints
+  - `models.py` - Database models (User, OAuthClient with `allowed_grant_types`, Token, AuthorizationCode)
+  - `security.py` - Token generation (`create_user_token`, `create_client_token`), JWT validation
+  - `routes.py` - OAuth2 endpoints; `/token` branches on `grant_type`
 
 ### Resource Server (`/resource-server`)
 - **Tech**: Python FastAPI
 - **Responsibility**: Protect APIs, validate OAuth2 tokens, return resources
 - **Key Endpoints**:
-  - `GET /api/user/profile` - Protected endpoint requiring Bearer token
-  - `GET /api/user/data` - Protected resource
-  - `GET /api/resource-server/health` - Health check
-- **Token Validation**: Calls Authorization Server's token introspection or validates JWT locally
+  - `GET /api/user/profile` - Requires user Bearer token (`@require_oauth2`)
+  - `GET /api/user/data` - Requires user Bearer token (`@require_oauth2`)
+  - `GET /api/service/stats` - Requires machine Bearer token (`@require_client_token`)
+  - `GET /health` - Health check
+- **Token Validation**: Validates JWT locally or via Auth Server introspection (set by `TOKEN_VALIDATION_MODE`)
 - **Key Files**:
-  - `security.py` - Token validation middleware
-  - `routes.py` - Protected resource endpoints
+  - `security.py` - Two decorators: `@require_oauth2` (populates `request.oauth2_user`) and `@require_client_token` (populates `request.oauth2_client`); both share the same JWT validation path
+  - `routes.py` - User endpoints and machine endpoints
   - `config.py` - Authorization Server URL configuration
 
 ### Client Application (`/client-app`)
 - **Tech**: Python Flask with Web UI
-- **Responsibility**: Initiates OAuth2 flow, stores user credentials, calls Resource Server
+- **Responsibility**: Demonstrates the Authorization Code flow with a browser UI
 - **Key Flows**:
-  1. Redirect user to Authorization Server
-  2. Receive authorization code
-  3. Exchange code for access token
-  4. Use access token to call Resource Server
+  1. Redirect user to Authorization Server (`/authorize` with PKCE + state)
+  2. Receive authorization code at `/callback`
+  3. Exchange code for access token (server-side, never exposed to browser)
+  4. Use access token to call Resource Server user APIs
   5. Handle token refresh when needed
 - **Session Management**: Secure session cookies with token storage
 - **Key Files**:
-  - `auth.py` - OAuth2 flow handling
-  - `routes.py` - Web routes and callbacks
+  - `auth.py` - OAuth2 flow handling (PKCE generation, state validation, code exchange)
+  - `routes.py` - Web routes and callback handler
   - `config.py` - OAuth2 credentials and URLs
+
+### Service Client (`scripts/service_client.py`)
+- **Tech**: Plain Python script (~40 lines), no web server
+- **Responsibility**: Demonstrates the Client Credentials flow end-to-end
+- **Flow**:
+  1. POST `client_id` + `client_secret` to `/token` with `grant_type=client_credentials`
+  2. Print the decoded token claims (shows `sub` = client ID, no user)
+  3. Call `/api/service/stats` with the token
+  4. Print the response
+- Run with `python scripts/service_client.py` or `make demo-cc`
 
 ### Resource Owner
 - A user with credentials (username/password) stored in Authorization Server
-- User logs in at Authorization Server to authorize Client Application
+- Participates only in the Authorization Code flow (not Client Credentials)
+- Logs in at Authorization Server to authorize Client Application
 - No direct authentication with Resource Server (only token-based)
 
 ## Development Commands
@@ -86,8 +113,9 @@ make test-auth-server
 make test-resource-server
 make test-client-app
 
-# Test OAuth2 flow end-to-end
-make test-e2e
+# Test OAuth2 flows end-to-end
+make test-e2e      # Authorization Code flow (browser-based)
+make test-e2e-cc   # Client Credentials flow (machine-to-machine)
 
 # Generate coverage report
 make coverage
@@ -167,11 +195,12 @@ make clean
 3. Access user info via `request.oauth2_user` context
 4. Test with Bearer token from Authorization Server
 
-### Implementing New Authorization Grant Type
-1. Add logic in `auth_server/security.py` for token generation
-2. Add endpoint in `auth_server/routes.py`
-3. Update client `auth.py` to support new flow
-4. Add tests in `tests/` directory
+### Adding a New Grant Type
+1. Add a `create_<type>_token()` function in `auth_server/security.py`
+2. Add a branch in the `/token` route in `auth_server/routes.py` keyed on `grant_type`
+3. Register the grant type in `OAuthClient.allowed_grant_types` and update `scripts/seed.py`
+4. Add a client demo (web app or script) that exercises the new flow
+5. Add tests in `tests/auth_server/test_token_<type>.py`
 
 ### Debugging OAuth2 Flows
 1. Enable debug mode: Set `DEBUG=true` in `.env`
@@ -183,27 +212,32 @@ make clean
 
 ```
 OAuth2/
-├── auth-server/              # Authorization Server (FastAPI)
-│   ├── models.py
-│   ├── security.py          # Token generation & validation
-│   ├── routes.py
+├── auth-server/              # Authorization Server (FastAPI) — both grant types
+│   ├── models.py            # User, OAuthClient (with allowed_grant_types), Token, AuthorizationCode
+│   ├── security.py          # create_user_token(), create_client_token(), validate_token()
+│   ├── routes.py            # /token branches on grant_type; /authorize for auth code only
 │   ├── config.py
 │   └── requirements.txt
-├── resource-server/          # Resource Server (FastAPI)
-│   ├── security.py          # Token validation middleware
-│   ├── routes.py
+├── resource-server/          # Resource Server (FastAPI) — user and machine APIs
+│   ├── security.py          # @require_oauth2 (user tokens), @require_client_token (machine tokens)
+│   ├── routes.py            # /api/user/* and /api/service/*
 │   ├── config.py
 │   └── requirements.txt
-├── client-app/               # Client Web App (Flask)
-│   ├── auth.py              # OAuth2 flow
+├── client-app/               # Client Web App (Flask) — Authorization Code flow demo
+│   ├── auth.py              # PKCE generation, state param, code exchange, token refresh
 │   ├── routes.py
 │   ├── config.py
 │   └── requirements.txt
 ├── migrations/               # Database migrations (Alembic)
-├── tests/                    # Test suite
-├── scripts/                  # Utility scripts (seed.py, etc.)
+├── tests/
+│   ├── auth_server/         # Unit tests for both grant types
+│   ├── resource_server/     # Tests for user and machine endpoints
+│   └── e2e/                 # test_auth_code_flow.py, test_client_credentials_flow.py
+├── scripts/
+│   ├── seed.py              # Seeds users + registers web-client and service-client
+│   └── service_client.py   # Client Credentials flow demo (~40 lines)
 ├── docker-compose.yml        # Docker Compose configuration
-├── Makefile                  # Development commands
+├── Makefile                  # Development commands (includes demo-cc, test-e2e-cc)
 └── .env.example              # Environment template
 ```
 
