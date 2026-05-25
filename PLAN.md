@@ -10,7 +10,7 @@ Docs (README.md + AGENTS.md) are already updated. Work through these in order �
   - Add `allowed_scopes: list` field for per-client scope restriction
   - Update Alembic migration to add both columns
 
-- [ ] **2. `auth-server/routes.py` + `security.py` — Client Credentials token issuance**
+- [x] **2. `auth-server/routes.py` + `security.py` — Client Credentials token issuance**
   - Add `create_client_token(client_id, scopes)` in `security.py` (JWT with `sub=client_id`, no user, no refresh token)
   - Add `grant_type=client_credentials` branch in the `/token` endpoint in `routes.py`:
     - Validate `client_id` + `client_secret` against DB
