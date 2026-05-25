@@ -1,0 +1,87 @@
+{
+  "/home/mpasquini/repo/OAuth2/.claude/settings.json": {
+    "mtime": 1779722558.3322003,
+    "ast_hash": "87f0d903477984d0587a02f8fe185263",
+    "semantic_hash": "87f0d903477984d0587a02f8fe185263"
+  },
+  "/home/mpasquini/repo/OAuth2/AGENTS.md": {
+    "mtime": 1779725256.5955727,
+    "ast_hash": "538246093bfee3b5f5cfe022e03a4b95",
+    "semantic_hash": "538246093bfee3b5f5cfe022e03a4b95"
+  },
+  "/home/mpasquini/repo/OAuth2/CUSTOMIZATION_SUMMARY.md": {
+    "mtime": 1779692933.3181403,
+    "ast_hash": "69d137eb2bd75a3ebcdc82a1213e39da",
+    "semantic_hash": "69d137eb2bd75a3ebcdc82a1213e39da"
+  },
+  "/home/mpasquini/repo/OAuth2/CLAUDE.md": {
+    "mtime": 1779722558.332014,
+    "ast_hash": "82efb97a359f5c7290bf2513d14686be",
+    "semantic_hash": "82efb97a359f5c7290bf2513d14686be"
+  },
+  "/home/mpasquini/repo/OAuth2/CONTRIBUTING.md": {
+    "mtime": 1779692933.3161404,
+    "ast_hash": "d7ba7921c0947121e12a414787b74a1d",
+    "semantic_hash": "d7ba7921c0947121e12a414787b74a1d"
+  },
+  "/home/mpasquini/repo/OAuth2/docker-compose.yml": {
+    "mtime": 1779692933.315029,
+    "ast_hash": "961313605f6ebfbe33882663aa5ed24a",
+    "semantic_hash": "961313605f6ebfbe33882663aa5ed24a"
+  },
+  "/home/mpasquini/repo/OAuth2/README.md": {
+    "mtime": 1779725194.308857,
+    "ast_hash": "101a46c8e262793ed99f876941c61d6b",
+    "semantic_hash": "101a46c8e262793ed99f876941c61d6b"
+  },
+  "/home/mpasquini/repo/OAuth2/.github/skills/oauth2-add-endpoint.md": {
+    "mtime": 1779692933.3171403,
+    "ast_hash": "1b4830974298390371939ce028775cfe",
+    "semantic_hash": "1b4830974298390371939ce028775cfe"
+  },
+  "/home/mpasquini/repo/OAuth2/.github/skills/oauth2-debug-flow.md": {
+    "mtime": 1779692933.3171403,
+    "ast_hash": "67bbcf089495b0736b9bd919b2bb274b",
+    "semantic_hash": "67bbcf089495b0736b9bd919b2bb274b"
+  },
+  "/home/mpasquini/repo/OAuth2/.claude/CLAUDE.md": {
+    "mtime": 1779722558.331845,
+    "ast_hash": "db73b0edd7ffbc61ceac177130730865",
+    "semantic_hash": "db73b0edd7ffbc61ceac177130730865"
+  },
+  "/home/mpasquini/repo/OAuth2/.claude/skills/graphify/SKILL.md": {
+    "mtime": 1779722558.3316102,
+    "ast_hash": "5ae00786ea53e4d944ab70abe11eedd1",
+    "semantic_hash": "5ae00786ea53e4d944ab70abe11eedd1"
+  },
+  "/home/mpasquini/repo/OAuth2/auth-server/models.py": {
+    "mtime": 1779726066.8263934,
+    "ast_hash": "eefab1731f5ad7f40b3817ea5a9c76a1",
+    "semantic_hash": "eefab1731f5ad7f40b3817ea5a9c76a1"
+  },
+  "/home/mpasquini/repo/OAuth2/auth-server/config.py": {
+    "mtime": 1779726071.7283847,
+    "ast_hash": "a372f92a39611471e27d1fb2b68900aa",
+    "semantic_hash": "a372f92a39611471e27d1fb2b68900aa"
+  },
+  "/home/mpasquini/repo/OAuth2/.claude/settings.local.json": {
+    "mtime": 1779723424.8532028,
+    "ast_hash": "d1076b610a00bfcb531ab5ddd0cd7d66",
+    "semantic_hash": "d1076b610a00bfcb531ab5ddd0cd7d66"
+  },
+  "/home/mpasquini/repo/OAuth2/migrations/env.py": {
+    "mtime": 1779726082.6623657,
+    "ast_hash": "a45a502901eb2faa34bc74f20e75e13f",
+    "semantic_hash": "a45a502901eb2faa34bc74f20e75e13f"
+  },
+  "/home/mpasquini/repo/OAuth2/migrations/versions/001_initial_schema.py": {
+    "mtime": 1779726099.329337,
+    "ast_hash": "8757d6346c72a0947f12932faa0fd91d",
+    "semantic_hash": "8757d6346c72a0947f12932faa0fd91d"
+  },
+  "/home/mpasquini/repo/OAuth2/PLAN.md": {
+    "mtime": 1779726128.432932,
+    "ast_hash": "aabc69f19c94d38dd102b6c820774c1b",
+    "semantic_hash": "aabc69f19c94d38dd102b6c820774c1b"
+  }
+}
