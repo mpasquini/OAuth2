@@ -27,7 +27,7 @@ Docs (README.md + AGENTS.md) are already updated. Work through these in order �
   - Returns aggregate data that makes sense for a background service (no user context)
   - Add tests in `tests/resource_server/test_service_endpoints.py`
 
-- [ ] **5. `scripts/service_client.py` — Client Credentials flow demo**
+- [x] **5. `scripts/service_client.py` — Client Credentials flow demo**
   - ~40-line standalone script (no web server, no Flask)
   - Step 1: POST `/token` with `grant_type=client_credentials`, `client_id`, `client_secret`, `scope`
   - Step 2: Decode and print the token claims (show `sub` = client ID, no `user_id`)

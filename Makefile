@@ -1,4 +1,4 @@
-.PHONY: help install setup-env up down logs dev test test-auth test-resource test-client test-e2e coverage migrate clean build
+.PHONY: help install setup-env up down logs dev test test-auth test-resource test-client test-e2e test-e2e-cc demo-cc coverage migrate clean build
 
 help:
 	@echo "OAuth2 Development Commands"
@@ -19,7 +19,9 @@ help:
 	@echo "  make test-auth      Run authorization server tests"
 	@echo "  make test-resource  Run resource server tests"
 	@echo "  make test-client    Run client app tests"
-	@echo "  make test-e2e       Run end-to-end OAuth2 flow tests"
+	@echo "  make test-e2e       Run end-to-end Authorization Code flow test"
+	@echo "  make test-e2e-cc    Run end-to-end Client Credentials flow test"
+	@echo "  make demo-cc        Run Client Credentials demo script"
 	@echo "  make coverage       Generate test coverage report"
 	@echo ""
 	@echo "Database:"
@@ -100,7 +102,13 @@ test-client:
 	pytest tests/client_app/ -v
 
 test-e2e:
-	pytest tests/e2e/ -v -s
+	pytest tests/e2e/test_auth_code_flow.py -v -s
+
+test-e2e-cc:
+	pytest tests/e2e/test_client_credentials_flow.py -v -s
+
+demo-cc:
+	python scripts/service_client.py
 
 coverage:
 	pytest tests/ --cov=. --cov-report=html --cov-report=term
