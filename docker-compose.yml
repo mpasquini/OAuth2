@@ -1,0 +1,116 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: oauth2-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-oauth2}
+      POSTGRES_USER: ${DB_USER:-oauth2_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-oauth2_password}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - oauth2-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-oauth2_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Authorization Server
+  auth-server:
+    build:
+      context: ./auth-server
+      dockerfile: Dockerfile
+    container_name: oauth2-auth-server
+    ports:
+      - "5000:${AUTH_SERVER_PORT:-5000}"
+    environment:
+      AUTH_SERVER_HOST: ${AUTH_SERVER_HOST:-0.0.0.0}
+      AUTH_SERVER_PORT: ${AUTH_SERVER_PORT:-5000}
+      AUTH_SERVER_URL: ${AUTH_SERVER_URL:-http://localhost:5000}
+      AUTH_SERVER_SECRET_KEY: ${AUTH_SERVER_SECRET_KEY:-dev-secret-key}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-oauth2}
+      DB_USER: ${DB_USER:-oauth2_user}
+      DB_PASSWORD: ${DB_PASSWORD:-oauth2_password}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-15}
+      REFRESH_TOKEN_EXPIRE_DAYS: ${REFRESH_TOKEN_EXPIRE_DAYS:-7}
+      ENV: ${ENV:-development}
+      DEBUG: ${DEBUG:-true}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./auth-server:/app
+    networks:
+      - oauth2-network
+    restart: unless-stopped
+
+  # Resource Server
+  resource-server:
+    build:
+      context: ./resource-server
+      dockerfile: Dockerfile
+    container_name: oauth2-resource-server
+    ports:
+      - "5002:${RESOURCE_SERVER_PORT:-5002}"
+    environment:
+      RESOURCE_SERVER_HOST: ${RESOURCE_SERVER_HOST:-0.0.0.0}
+      RESOURCE_SERVER_PORT: ${RESOURCE_SERVER_PORT:-5002}
+      RESOURCE_SERVER_URL: ${RESOURCE_SERVER_URL:-http://localhost:5002}
+      AUTH_SERVER_URL: http://auth-server:${AUTH_SERVER_PORT:-5000}
+      TOKEN_VALIDATION_MODE: ${TOKEN_VALIDATION_MODE:-jwt}
+      AUTH_SERVER_SECRET_KEY: ${AUTH_SERVER_SECRET_KEY:-dev-secret-key}
+      ENV: ${ENV:-development}
+      DEBUG: ${DEBUG:-true}
+    depends_on:
+      - auth-server
+    volumes:
+      - ./resource-server:/app
+    networks:
+      - oauth2-network
+    restart: unless-stopped
+
+  # Client Application
+  client-app:
+    build:
+      context: ./client-app
+      dockerfile: Dockerfile
+    container_name: oauth2-client-app
+    ports:
+      - "5001:${CLIENT_APP_PORT:-5001}"
+    environment:
+      CLIENT_APP_HOST: ${CLIENT_APP_HOST:-0.0.0.0}
+      CLIENT_APP_PORT: ${CLIENT_APP_PORT:-5001}
+      CLIENT_APP_URL: ${CLIENT_APP_URL:-http://localhost:5001}
+      CLIENT_APP_SECRET_KEY: ${CLIENT_APP_SECRET_KEY:-dev-flask-key}
+      OAUTH2_CLIENT_ID: ${OAUTH2_CLIENT_ID:-web-client}
+      OAUTH2_CLIENT_SECRET: ${OAUTH2_CLIENT_SECRET:-web-client-secret}
+      OAUTH2_REDIRECT_URI: ${OAUTH2_REDIRECT_URI:-http://localhost:5001/callback}
+      OAUTH2_AUTHORIZE_URL: http://auth-server:${AUTH_SERVER_PORT:-5000}/authorize
+      OAUTH2_TOKEN_URL: http://auth-server:${AUTH_SERVER_PORT:-5000}/token
+      OAUTH2_USERINFO_URL: http://auth-server:${AUTH_SERVER_PORT:-5000}/userinfo
+      RESOURCE_SERVER_URL: http://resource-server:${RESOURCE_SERVER_PORT:-5002}/api
+      ENV: ${ENV:-development}
+      DEBUG: ${DEBUG:-true}
+    depends_on:
+      - auth-server
+    volumes:
+      - ./client-app:/app
+    networks:
+      - oauth2-network
+    restart: unless-stopped
+
+networks:
+  oauth2-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
