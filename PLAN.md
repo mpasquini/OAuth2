@@ -22,7 +22,7 @@ Docs (README.md + AGENTS.md) are already updated. Work through these in order �
   - `@require_oauth2` — existing behaviour, asserts token `sub` is a user ID, populates `request.oauth2_user`
   - `@require_client_token` — new, asserts token `sub` is a client ID, populates `request.oauth2_client`
 
-- [ ] **4. `resource-server/routes.py` — add machine API endpoint**
+- [x] **4. `resource-server/routes.py` — add machine API endpoint**
   - Add `GET /api/service/stats` protected with `@require_client_token`
   - Returns aggregate data that makes sense for a background service (no user context)
   - Add tests in `tests/resource_server/test_service_endpoints.py`
