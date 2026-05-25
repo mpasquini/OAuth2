@@ -1,6 +1,6 @@
-# OAuth2 Implementation - Authorization Code Flow
+# OAuth2 Implementation - Authorization Code Flow & Client Credentials Flow
 
-A **practical, educational, and production-ready** implementation of OAuth2 authorization code flow with three distinct components running in Docker containers.
+A **practical, educational, and production-ready** implementation of two OAuth2 flows — Authorization Code (user-facing) and Client Credentials (machine-to-machine) — with three services running in Docker containers.
 
 ## 📋 Quick Start
 
@@ -22,9 +22,13 @@ make up
 open http://localhost:5001
 ```
 
-## 🔄 OAuth2 Authorization Code Flow
+## 🔄 OAuth2 Flows
 
-This project demonstrates the complete OAuth2 cycle:
+This project demonstrates two complete OAuth2 flows. Understanding when to use each is the core learning goal.
+
+### Flow 1: Authorization Code (user-facing)
+
+Used when a **human user** grants a third-party app access to their data.
 
 ```
 1. User visits Client App
@@ -45,6 +49,35 @@ This project demonstrates the complete OAuth2 cycle:
    ↓
 9. When token expires, Client uses REFRESH TOKEN to get new ACCESS TOKEN
 ```
+
+### Flow 2: Client Credentials (machine-to-machine)
+
+Used when a **service or background job** accesses an API with no user involved.
+
+```
+1. Service POSTs client_id + client_secret to Authorization Server (/token)
+   ↓
+2. Authorization Server validates credentials and issues ACCESS TOKEN
+   (no redirect, no user login, no PKCE — just a credential check)
+   ↓
+3. Service uses ACCESS TOKEN to call Resource Server machine APIs
+   ↓
+4. Resource Server validates token and returns data
+   ↓
+5. When token expires, Service requests a new one (no refresh token needed)
+```
+
+### When to use which flow
+
+| | Authorization Code | Client Credentials |
+|---|---|---|
+| **Who authenticates** | A human user | A machine / service |
+| **Involves a browser** | Yes | No |
+| **User consent screen** | Yes | No |
+| **PKCE + State param** | Yes (required) | No |
+| **Refresh token issued** | Yes | No (re-request instead) |
+| **Token `sub` claim** | User ID | Client ID |
+| **Example use case** | "Login with Google" | Microservice API call |
 
 ## 🏗️ Architecture
 
@@ -69,34 +102,39 @@ This project demonstrates the complete OAuth2 cycle:
 
 ```
 OAuth2/
-├── auth-server/                  # Authorization Server
+├── auth-server/                  # Authorization Server (both flows)
 │   ├── main.py                   # FastAPI app
-│   ├── models.py                 # Database models
-│   ├── security.py               # Token generation & validation
-│   ├── routes.py                 # OAuth2 endpoints
+│   ├── models.py                 # Database models (User, OAuthClient, Token, AuthorizationCode)
+│   ├── security.py               # Token generation & validation (user + client tokens)
+│   ├── routes.py                 # OAuth2 endpoints (handles both grant types)
 │   ├── config.py                 # Configuration
 │   ├── Dockerfile
 │   └── requirements.txt
 │
-├── resource-server/              # Resource Server
+├── resource-server/              # Resource Server (protects both user and machine APIs)
 │   ├── main.py                   # FastAPI app
-│   ├── routes.py                 # Protected APIs
-│   ├── security.py               # Token validation middleware
+│   ├── routes.py                 # User APIs + machine APIs (/api/service/*)
+│   ├── security.py               # Token validation (@require_oauth2 for users, @require_client_token for machines)
 │   ├── config.py
 │   ├── Dockerfile
 │   └── requirements.txt
 │
-├── client-app/                   # Client Web Application
+├── client-app/                   # Client Web Application (Authorization Code Flow demo)
 │   ├── main.py                   # Flask app
-│   ├── auth.py                   # OAuth2 flow logic
-│   ├── routes.py                 # Web routes
+│   ├── auth.py                   # OAuth2 flow logic (PKCE, state, code exchange)
+│   ├── routes.py                 # Web routes and callback handler
 │   ├── templates/                # HTML templates
 │   ├── Dockerfile
 │   └── requirements.txt
 │
 ├── migrations/                   # Alembic database migrations
 ├── tests/                        # Test suite
-├── scripts/                      # Utilities (seed.py, etc.)
+│   ├── auth_server/              # Auth server unit tests (both grant types)
+│   ├── resource_server/          # Resource server endpoint tests
+│   └── e2e/                      # End-to-end flow tests
+├── scripts/
+│   ├── seed.py                   # Seeds test users + both client registrations
+│   └── service_client.py         # Client Credentials Flow demo (CLI, ~40 lines)
 ├── docker-compose.yml            # Docker Compose config
 ├── Makefile                      # Development commands
 ├── .env.example                  # Environment template
@@ -118,12 +156,16 @@ make logs                       # View logs
 
 # Testing
 make test                       # Run all tests
-make test-e2e                   # End-to-end flow test
+make test-e2e                   # End-to-end Authorization Code flow test
+make test-e2e-cc                # End-to-end Client Credentials flow test
 make coverage                   # Coverage report
+
+# Demos
+make demo-cc                    # Run service_client.py: prints token claims + API response
 
 # Database
 make migrate                    # Run migrations
-make seed                       # Add test users
+make seed                       # Add test users + register both OAuth2 clients
 
 # Cleanup
 make clean                      # Remove containers & volumes
@@ -134,11 +176,19 @@ See `make help` for full list of commands.
 
 ## 🔐 Key Security Features
 
+**Authorization Code Flow**
 ✅ **PKCE** (Proof Key for Code Exchange) - Prevents authorization code interception  
 ✅ **State Parameter** - CSRF protection during redirects  
 ✅ **Secure Cookies** - HttpOnly, Secure flags for refresh tokens  
-✅ **JWT Validation** - Token signature verification  
-✅ **Token Expiry** - Short-lived access tokens, long-lived refresh tokens  
+
+**Client Credentials Flow**
+✅ **Client Authentication** - client_id + client_secret validated server-side  
+✅ **Scope Restriction** - Each machine client declares allowed scopes at registration  
+✅ **No Refresh Token** - Stateless re-request model for machine clients  
+
+**Both flows**
+✅ **JWT Validation** - Token signature verification (or introspection mode)  
+✅ **Token Expiry** - Short-lived access tokens  
 ✅ **HTTPS Ready** - TLS/SSL configuration for production  
 
 ## 📝 Configuration
@@ -188,15 +238,24 @@ make coverage
 open htmlcov/index.html
 ```
 
-## 📊 Default Test Users
+## 📊 Default Test Credentials
 
-After running `make seed`, these users are available:
+After running `make seed`, these are available:
+
+**Users** (for Authorization Code flow)
 
 | Username | Password | Email |
 |----------|----------|-------|
 | alice | alice123 | alice@example.com |
 | bob | bob123 | bob@example.com |
 | charlie | charlie123 | charlie@example.com |
+
+**Registered OAuth2 Clients**
+
+| Client ID | Secret | Grant type | Scopes |
+|-----------|--------|------------|--------|
+| `web-client` | `web-client-secret` | `authorization_code` | `read write` |
+| `service-client` | `service-client-secret` | `client_credentials` | `read:stats` |
 
 ## 🐛 Troubleshooting
 
@@ -241,24 +300,32 @@ make seed
 
 ### Authorization Server
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/authorize` | GET | Initiate OAuth2 flow |
-| `/token` | POST | Exchange code for token |
-| `/refresh` | POST | Get new access token using refresh token |
-| `/userinfo` | GET | Get current user info (requires token) |
-| `/introspect` | POST | Validate/introspect token |
-| `/.well-known/oauth-metadata` | GET | OpenID Connect discovery |
+| Endpoint | Method | Description | Grant type |
+|----------|--------|-------------|------------|
+| `/authorize` | GET | Initiate Authorization Code flow | `authorization_code` |
+| `/token` | POST | Exchange code **or** client credentials for token | both |
+| `/refresh` | POST | Get new access token using refresh token | `authorization_code` |
+| `/userinfo` | GET | Get current user info (requires user token) | `authorization_code` |
+| `/introspect` | POST | Validate/introspect any token | both |
+| `/.well-known/oauth-metadata` | GET | OpenID Connect discovery | — |
+
+The `/token` endpoint distinguishes flows by `grant_type` in the request body:
+- `grant_type=authorization_code` — requires `code`, `redirect_uri`, `code_verifier` (PKCE)
+- `grant_type=client_credentials` — requires `client_id`, `client_secret`, `scope`
 
 ### Resource Server
 
 | Endpoint | Method | Description | Auth |
 |----------|--------|-------------|------|
-| `/api/user/profile` | GET | Get user profile | Bearer token |
-| `/api/user/data` | GET | Get user data | Bearer token |
+| `/api/user/profile` | GET | Get user profile | User Bearer token |
+| `/api/user/data` | GET | Get user data | User Bearer token |
+| `/api/service/stats` | GET | Aggregate stats (machine API) | Client Bearer token |
 | `/health` | GET | Health check | None |
 
-### Client App
+User endpoints use `@require_oauth2` (token must have a user `sub`).  
+Machine endpoints use `@require_client_token` (token `sub` is a client ID, no user context).
+
+### Client App (Authorization Code Flow)
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
@@ -266,6 +333,17 @@ make seed
 | `/callback` | GET | OAuth2 callback (internal) |
 | `/profile` | GET | User profile (protected) |
 | `/logout` | POST | Logout |
+
+### Service Client (Client Credentials Flow)
+
+A CLI script (`scripts/service_client.py`), not a web server. Run with:
+
+```bash
+python scripts/service_client.py
+# or: make demo-cc
+```
+
+It prints the raw token claims, then calls `/api/service/stats` and shows the response. The entire OAuth2 Client Credentials flow in one file.
 
 ## 🔗 Learn More
 
