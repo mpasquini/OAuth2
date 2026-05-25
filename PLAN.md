@@ -17,7 +17,7 @@ Docs (README.md + AGENTS.md) are already updated. Work through these in order �
     - Check `client_credentials` is in `OAuthClient.allowed_grant_types`
     - Issue access token via `create_client_token()`; return no `refresh_token`
 
-- [ ] **3. `resource-server/security.py` — add `@require_client_token` decorator**
+- [x] **3. `resource-server/security.py` — add `@require_client_token` decorator**
   - Extract shared JWT validation logic into a helper used by both decorators
   - `@require_oauth2` — existing behaviour, asserts token `sub` is a user ID, populates `request.oauth2_user`
   - `@require_client_token` — new, asserts token `sub` is a client ID, populates `request.oauth2_client`
