@@ -63,6 +63,71 @@ Docs (README.md + AGENTS.md) are already updated. Work through these in order �
 
 ---
 
+## Docker
+
+`docker-compose.yml` already references all three Dockerfiles. Work through these in order.
+
+- [x] **10. Shared `.dockerignore` (root-level)**
+  - Prevents large directories from being sent as build context:
+    ```
+    graphify-out/
+    __pycache__/
+    *.pyc
+    *.db
+    .env
+    .git/
+    tests/
+    htmlcov/
+    .pytest_cache/
+    ```
+
+- [ ] **11. `auth-server/Dockerfile` + `auth-server/entrypoint.sh`**
+  - Base image: `python:3.12-slim` (stable; avoids bleeding-edge 3.14 compat issues)
+  - Install system deps needed by `bcrypt` C extension: `gcc libffi-dev`
+  - Copy `requirements.txt` first (layer-cache pip install before copying source)
+  - `WORKDIR /app`, copy source, create non-root user (`appuser`) and `chown`
+  - `entrypoint.sh` runs before uvicorn:
+    1. `alembic upgrade head` — applies all pending migrations
+    2. `python scripts/seed.py` — idempotent; safe to run on every start
+    3. `exec uvicorn main:app --host 0.0.0.0 --port ${AUTH_SERVER_PORT:-5000}`
+  - `CMD ["/app/entrypoint.sh"]`
+
+- [ ] **12. `resource-server/Dockerfile`**
+  - Base image: `python:3.12-slim`
+  - No DB migrations or seed needed — stateless service
+  - Pattern: copy `requirements.txt` → pip install → copy source → non-root user
+  - `CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5002"]`
+  - Port read from `RESOURCE_SERVER_PORT` env var; override in compose if needed
+
+- [ ] **13. `client-app/Dockerfile`**
+  - Base image: `python:3.12-slim`
+  - Flask is pure Python — no C extensions, no extra system packages needed
+  - Pattern: copy `requirements.txt` → pip install → copy source → non-root user
+  - `CMD ["python", "main.py"]` (Flask dev server; swap for gunicorn in production)
+  - `EXPOSE 5001`
+
+- [ ] **14. `docker-compose.dev.yml` — hot-reload override**
+  - Referenced by `make dev` (`docker-compose -f docker-compose.yml -f docker-compose.dev.yml up`)
+  - Override each service to mount source and enable reload:
+    ```yaml
+    services:
+      auth-server:
+        command: uvicorn main:app --host 0.0.0.0 --port 5000 --reload
+        volumes: [./auth-server:/app]
+      resource-server:
+        command: uvicorn main:app --host 0.0.0.0 --port 5002 --reload
+        volumes: [./resource-server:/app]
+      client-app:
+        command: python main.py          # Flask debug=True handles reload
+        environment:
+          FLASK_ENV: development
+        volumes: [./client-app:/app]
+    ```
+  - Source volume mounts already exist in `docker-compose.yml` for all three services,
+    so the only additions here are the `--reload` commands and `FLASK_ENV`
+
+---
+
 ## RFC 9700 Security Review
 
 Audit against [OAuth 2.0 Security Best Current Practice (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700).

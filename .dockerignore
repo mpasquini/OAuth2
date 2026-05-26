@@ -1,0 +1,11 @@
+graphify-out/
+__pycache__/
+*.pyc
+*.db
+.env
+.git/
+tests/
+htmlcov/
+.pytest_cache/
+.github/
+.claude/
