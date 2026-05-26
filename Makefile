@@ -95,21 +95,21 @@ seed-local:
 
 # Testing
 test:
-	pytest -v tests/
+	coverage run -m pytest -v tests/
 	@echo ""
 	@echo "All tests completed. Use 'make coverage' to generate a detailed report."
 
 test-auth:
-	pytest tests/auth_server/ -v
+	coverage run -m pytest tests/auth_server/ -v
 
 test-resource:
-	pytest tests/resource_server/ -v
+	coverage run -m pytest tests/resource_server/ -v
 
 test-client:
-	pytest tests/client_app/ -v
+	coverage run -m pytest tests/client_app/ -v
 
 test-e2e:
-	pytest tests/e2e/test_auth_code_flow.py -v -s
+	coverage run -m pytest tests/e2e/test_auth_code_flow.py -v -s
 
 test-e2e-cc:
 	pytest tests/e2e/test_client_credentials_flow.py -v -s
