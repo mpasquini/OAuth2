@@ -30,7 +30,9 @@ sys.path.insert(0, str(CLIENT))   # lets Flask find templates/ relative to clien
 
 _load(CLIENT / "config.py", "config")
 _load(CLIENT / "auth.py", "auth")
-_load(CLIENT / "routes.py", "routes")
+# Keep a direct reference — sys.modules["routes"] may be overwritten by the
+# resource-server test module (same key, different file) depending on collection order.
+_ca_routes = _load(CLIENT / "routes.py", "routes")
 client_main = _load(CLIENT / "main.py", "main")
 
 app = client_main.app
@@ -100,7 +102,7 @@ def test_callback_exchanges_code_for_token(client):
         "expires_in": 900,
     }
 
-    with patch("routes.exchange_code", return_value=fake_tokens) as mock_exchange:
+    with patch.object(_ca_routes, "exchange_code", return_value=fake_tokens) as mock_exchange:
         r = client.get("/callback?code=auth-code-123&state=correct-state")
 
     mock_exchange.assert_called_once_with("auth-code-123", "test-verifier")
@@ -146,7 +148,7 @@ def test_profile_shows_claims(client):
 
     fake_profile = {"sub": "42", "scope": "read", "token_type": "user"}
 
-    with patch("routes.get_user_profile", return_value=fake_profile):
+    with patch.object(_ca_routes, "get_user_profile", return_value=fake_profile):
         r = client.get("/profile")
 
     assert r.status_code == 200
