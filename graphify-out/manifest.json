@@ -5,7 +5,7 @@
     "semantic_hash": "87f0d903477984d0587a02f8fe185263"
   },
   "/home/mpasquini/repo/OAuth2/AGENTS.md": {
-    "mtime": 1779725256.5955727,
+    "mtime": 1779728315.6608102,
     "ast_hash": "538246093bfee3b5f5cfe022e03a4b95",
     "semantic_hash": "538246093bfee3b5f5cfe022e03a4b95"
   },
@@ -15,7 +15,7 @@
     "semantic_hash": "69d137eb2bd75a3ebcdc82a1213e39da"
   },
   "/home/mpasquini/repo/OAuth2/CLAUDE.md": {
-    "mtime": 1779722558.332014,
+    "mtime": 1779728170.7820861,
     "ast_hash": "82efb97a359f5c7290bf2513d14686be",
     "semantic_hash": "82efb97a359f5c7290bf2513d14686be"
   },
@@ -30,7 +30,7 @@
     "semantic_hash": "961313605f6ebfbe33882663aa5ed24a"
   },
   "/home/mpasquini/repo/OAuth2/README.md": {
-    "mtime": 1779725194.308857,
+    "mtime": 1779728315.6610458,
     "ast_hash": "101a46c8e262793ed99f876941c61d6b",
     "semantic_hash": "101a46c8e262793ed99f876941c61d6b"
   },
@@ -55,14 +55,14 @@
     "semantic_hash": "5ae00786ea53e4d944ab70abe11eedd1"
   },
   "/home/mpasquini/repo/OAuth2/auth-server/models.py": {
-    "mtime": 1779726066.8263934,
+    "mtime": 1779728315.6612585,
     "ast_hash": "eefab1731f5ad7f40b3817ea5a9c76a1",
     "semantic_hash": "eefab1731f5ad7f40b3817ea5a9c76a1"
   },
   "/home/mpasquini/repo/OAuth2/auth-server/config.py": {
-    "mtime": 1779726071.7283847,
-    "ast_hash": "a372f92a39611471e27d1fb2b68900aa",
-    "semantic_hash": "a372f92a39611471e27d1fb2b68900aa"
+    "mtime": 1779729979.9754791,
+    "ast_hash": "fa58a7d9c35fd62d372cf41bfe58af4e",
+    "semantic_hash": "fa58a7d9c35fd62d372cf41bfe58af4e"
   },
   "/home/mpasquini/repo/OAuth2/.claude/settings.local.json": {
     "mtime": 1779723424.8532028,
@@ -70,18 +70,163 @@
     "semantic_hash": "d1076b610a00bfcb531ab5ddd0cd7d66"
   },
   "/home/mpasquini/repo/OAuth2/migrations/env.py": {
-    "mtime": 1779726082.6623657,
+    "mtime": 1779728315.6613274,
     "ast_hash": "a45a502901eb2faa34bc74f20e75e13f",
     "semantic_hash": "a45a502901eb2faa34bc74f20e75e13f"
   },
   "/home/mpasquini/repo/OAuth2/migrations/versions/001_initial_schema.py": {
-    "mtime": 1779726099.329337,
+    "mtime": 1779728315.6613822,
     "ast_hash": "8757d6346c72a0947f12932faa0fd91d",
     "semantic_hash": "8757d6346c72a0947f12932faa0fd91d"
   },
   "/home/mpasquini/repo/OAuth2/PLAN.md": {
-    "mtime": 1779726128.432932,
-    "ast_hash": "aabc69f19c94d38dd102b6c820774c1b",
-    "semantic_hash": "aabc69f19c94d38dd102b6c820774c1b"
+    "mtime": 1779792963.870403,
+    "ast_hash": "64daa7ec930d513fac2f437dbe9a0e7b",
+    "semantic_hash": "64daa7ec930d513fac2f437dbe9a0e7b"
+  },
+  "/home/mpasquini/repo/OAuth2/tests/__init__.py": {
+    "mtime": 1779793071.6960273,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/home/mpasquini/repo/OAuth2/tests/auth_server/__init__.py": {
+    "mtime": 1779791117.0442197,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/home/mpasquini/repo/OAuth2/tests/client_app/__init__.py": {
+    "mtime": 1779792883.1339107,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/home/mpasquini/repo/OAuth2/tests/client_app/test_flows.py": {
+    "mtime": 1779792883.1340237,
+    "ast_hash": "826d2a8e2b77f744da872f64f26ea873",
+    "semantic_hash": "826d2a8e2b77f744da872f64f26ea873"
+  },
+  "/home/mpasquini/repo/OAuth2/tests/resource_server/test_service_endpoints.py": {
+    "mtime": 1779731054.398427,
+    "ast_hash": "d4db45cf22c53bd0634aaefc915db746",
+    "semantic_hash": "d4db45cf22c53bd0634aaefc915db746"
+  },
+  "/home/mpasquini/repo/OAuth2/tests/resource_server/__init__.py": {
+    "mtime": 1779737053.6154106,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/home/mpasquini/repo/OAuth2/tests/e2e/test_auth_code_flow.py": {
+    "mtime": 1779737078.9694357,
+    "ast_hash": "9056c765e5c389cd279ab6d68421efa0",
+    "semantic_hash": "9056c765e5c389cd279ab6d68421efa0"
+  },
+  "/home/mpasquini/repo/OAuth2/tests/e2e/__init__.py": {
+    "mtime": 1779737053.6154106,
+    "ast_hash": "d41d8cd98f00b204e9800998ecf8427e",
+    "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "/home/mpasquini/repo/OAuth2/auth-server/security.py": {
+    "mtime": 1779729979.9757748,
+    "ast_hash": "4cd99c04328735c4881d2e3cdfbcaae7",
+    "semantic_hash": "4cd99c04328735c4881d2e3cdfbcaae7"
+  },
+  "/home/mpasquini/repo/OAuth2/auth-server/routes.py": {
+    "mtime": 1779792883.1334212,
+    "ast_hash": "462ee7c5a422fc519e35ce55debd3a0f",
+    "semantic_hash": "462ee7c5a422fc519e35ce55debd3a0f"
+  },
+  "/home/mpasquini/repo/OAuth2/auth-server/database.py": {
+    "mtime": 1779729979.9754791,
+    "ast_hash": "28ce12fddee01549c211b54275234e9f",
+    "semantic_hash": "28ce12fddee01549c211b54275234e9f"
+  },
+  "/home/mpasquini/repo/OAuth2/auth-server/main.py": {
+    "mtime": 1779729979.9755826,
+    "ast_hash": "0aa11a8683e2b89a188658418671b296",
+    "semantic_hash": "0aa11a8683e2b89a188658418671b296"
+  },
+  "/home/mpasquini/repo/OAuth2/client-app/config.py": {
+    "mtime": 1779792883.1335,
+    "ast_hash": "52a452c53a48c84369c76f03eb9ecadd",
+    "semantic_hash": "52a452c53a48c84369c76f03eb9ecadd"
+  },
+  "/home/mpasquini/repo/OAuth2/client-app/auth.py": {
+    "mtime": 1779792883.1335,
+    "ast_hash": "42d2a29100025211642b401d060d9a29",
+    "semantic_hash": "42d2a29100025211642b401d060d9a29"
+  },
+  "/home/mpasquini/repo/OAuth2/client-app/routes.py": {
+    "mtime": 1779792883.133706,
+    "ast_hash": "15910e6eae86dfc341079767e487c156",
+    "semantic_hash": "15910e6eae86dfc341079767e487c156"
+  },
+  "/home/mpasquini/repo/OAuth2/client-app/main.py": {
+    "mtime": 1779792883.1336007,
+    "ast_hash": "ce437317a52f9d845b5345fc15261ed5",
+    "semantic_hash": "ce437317a52f9d845b5345fc15261ed5"
+  },
+  "/home/mpasquini/repo/OAuth2/resource-server/security.py": {
+    "mtime": 1779730572.3834724,
+    "ast_hash": "c65649948c370e67aa161e54c7d40c72",
+    "semantic_hash": "c65649948c370e67aa161e54c7d40c72"
+  },
+  "/home/mpasquini/repo/OAuth2/resource-server/config.py": {
+    "mtime": 1779730572.3832107,
+    "ast_hash": "4a84364f153839dc6a46ed3efc7afa26",
+    "semantic_hash": "4a84364f153839dc6a46ed3efc7afa26"
+  },
+  "/home/mpasquini/repo/OAuth2/resource-server/routes.py": {
+    "mtime": 1779731054.398427,
+    "ast_hash": "d513e8ac6e4f9480aa376dd6c5efc586",
+    "semantic_hash": "d513e8ac6e4f9480aa376dd6c5efc586"
+  },
+  "/home/mpasquini/repo/OAuth2/resource-server/main.py": {
+    "mtime": 1779731054.398012,
+    "ast_hash": "24e465cb8fba73042d5a921aa3012ed5",
+    "semantic_hash": "24e465cb8fba73042d5a921aa3012ed5"
+  },
+  "/home/mpasquini/repo/OAuth2/scripts/service_client.py": {
+    "mtime": 1779731095.1949852,
+    "ast_hash": "6ba46905971f795c4fd45c522318813b",
+    "semantic_hash": "6ba46905971f795c4fd45c522318813b"
+  },
+  "/home/mpasquini/repo/OAuth2/scripts/seed.py": {
+    "mtime": 1779787572.9968925,
+    "ast_hash": "a9288d19c37a2570c91274a7f9d68c24",
+    "semantic_hash": "a9288d19c37a2570c91274a7f9d68c24"
+  },
+  "/home/mpasquini/repo/OAuth2/.vscode/settings.json": {
+    "mtime": 1779789444.1309657,
+    "ast_hash": "29db082d6880234ab798c78046df291b",
+    "semantic_hash": "29db082d6880234ab798c78046df291b"
+  },
+  "/home/mpasquini/repo/OAuth2/auth-server/requirements.txt": {
+    "mtime": 1779729979.9755826,
+    "ast_hash": "80cff74713f34ac92579d89aee3a44fd",
+    "semantic_hash": "80cff74713f34ac92579d89aee3a44fd"
+  },
+  "/home/mpasquini/repo/OAuth2/client-app/requirements.txt": {
+    "mtime": 1779792883.1336443,
+    "ast_hash": "de44916ad9edfe7e846869c010078162",
+    "semantic_hash": "de44916ad9edfe7e846869c010078162"
+  },
+  "/home/mpasquini/repo/OAuth2/client-app/templates/index.html": {
+    "mtime": 1779792883.1338174,
+    "ast_hash": "65ca4fd368c84adaf77bdb7be2a3c9e2",
+    "semantic_hash": "65ca4fd368c84adaf77bdb7be2a3c9e2"
+  },
+  "/home/mpasquini/repo/OAuth2/client-app/templates/profile.html": {
+    "mtime": 1779792883.1339107,
+    "ast_hash": "4010210c188b61aaacd184c07e2c9465",
+    "semantic_hash": "4010210c188b61aaacd184c07e2c9465"
+  },
+  "/home/mpasquini/repo/OAuth2/client-app/templates/base.html": {
+    "mtime": 1779792883.1337535,
+    "ast_hash": "aa913bfcf9819c7aaac8bd3752994de6",
+    "semantic_hash": "aa913bfcf9819c7aaac8bd3752994de6"
+  },
+  "/home/mpasquini/repo/OAuth2/resource-server/requirements.txt": {
+    "mtime": 1779731054.3982112,
+    "ast_hash": "0242ef521cf20395dc75e9b039cc2f97",
+    "semantic_hash": "0242ef521cf20395dc75e9b039cc2f97"
   }
 }
