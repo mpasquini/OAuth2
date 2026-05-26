@@ -81,7 +81,7 @@ Docs (README.md + AGENTS.md) are already updated. Work through these in order â€
     .pytest_cache/
     ```
 
-- [ ] **11. `auth-server/Dockerfile` + `auth-server/entrypoint.sh`**
+- [x] **11. `auth-server/Dockerfile` + `auth-server/entrypoint.sh`**
   - Base image: `python:3.12-slim` (stable; avoids bleeding-edge 3.14 compat issues)
   - Install system deps needed by `bcrypt` C extension: `gcc libffi-dev`
   - Copy `requirements.txt` first (layer-cache pip install before copying source)

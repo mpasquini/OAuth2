@@ -4,7 +4,8 @@ from datetime import datetime, timedelta, timezone
 from urllib.parse import urlencode
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Query
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
+from sqlalchemy import text
 from sqlalchemy.orm import Session
 
 from config import ACCESS_TOKEN_EXPIRE_MINUTES, AUTHORIZATION_CODE_EXPIRE_MINUTES
@@ -380,6 +381,23 @@ def introspect_endpoint(
         "exp": payload.get("exp"),
         "iat": payload.get("iat"),
     }
+
+
+# ---------------------------------------------------------------------------
+# GET /health
+# ---------------------------------------------------------------------------
+
+@router.get("/health")
+def health(db: Session = Depends(get_db)):
+    try:
+        db.execute(text("SELECT 1"))
+        db_status = "ok"
+    except Exception as exc:
+        return JSONResponse(
+            status_code=503,
+            content={"status": "degraded", "db": str(exc)},
+        )
+    return {"status": "ok", "db": db_status}
 
 
 # ---------------------------------------------------------------------------

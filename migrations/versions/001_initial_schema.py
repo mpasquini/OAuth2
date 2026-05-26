@@ -73,7 +73,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_table("tokens")
-    op.drop_table("authorization_codes")
-    op.drop_table("oauth_clients")
-    op.drop_table("users")
+    op.drop_table("tokens", if_exists=True)
+    op.drop_table("authorization_codes", if_exists=True)
+    op.drop_table("oauth_clients", if_exists=True)
+    op.drop_table("users", if_exists=True)
