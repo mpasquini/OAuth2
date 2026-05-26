@@ -56,7 +56,7 @@ Docs (README.md + AGENTS.md) are already updated. Work through these in order �
   - `config.py`, `main.py`, `requirements.txt`
   - This is the user-facing counterpart to `scripts/service_client.py`
 
-- [ ] **9. `tests/e2e/` — end-to-end tests (require `make up`)**
+- [x] **9. `tests/e2e/` — end-to-end tests (require `make up`)**
   - `test_client_credentials_flow.py`: POST /token → GET /api/service/stats → assert 200 and correct body
   - `test_auth_code_flow.py`: simulate full browser flow programmatically
   - Stub files already created; needs real implementation once services are running
