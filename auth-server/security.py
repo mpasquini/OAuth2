@@ -2,7 +2,8 @@ from __future__ import annotations
 
 import base64
 import hashlib
-import secrets # for secure random generation (auth codes, refresh tokens), secrets is a Python standard library module
+import secrets
+import uuid
 from datetime import datetime, timedelta, timezone
 
 import bcrypt
@@ -35,6 +36,7 @@ def _build_payload(sub: str, token_type: str, scope: str) -> dict:
         "scope": scope,
         "iat": now,
         "exp": now + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES),
+        "jti": str(uuid.uuid4()),
     }
 
 
