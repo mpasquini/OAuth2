@@ -1,3 +1,10 @@
 **/__pycache__/*
 graphify-out/cache/*
 .env
+.coverage
+htmlcov/
+*.log
+*.db
+*.sqlite
+*.sqlite3
+*.pyc

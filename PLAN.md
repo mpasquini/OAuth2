@@ -27,7 +27,7 @@ Docs (README.md + AGENTS.md) are already updated. Work through these in order �
   - Returns aggregate data that makes sense for a background service (no user context)
   - Add tests in `tests/resource_server/test_service_endpoints.py`
 
-- [ ] **5. `scripts/service_client.py` — Client Credentials flow demo**
+- [x] **5. `scripts/service_client.py` — Client Credentials flow demo**
   - ~40-line standalone script (no web server, no Flask)
   - Step 1: POST `/token` with `grant_type=client_credentials`, `client_id`, `client_secret`, `scope`
   - Step 2: Decode and print the token claims (show `sub` = client ID, no `user_id`)
@@ -35,8 +35,28 @@ Docs (README.md + AGENTS.md) are already updated. Work through these in order �
   - Step 4: Print the response
   - Add `demo-cc` and `test-e2e-cc` targets to `Makefile`
 
-- [ ] **6. `scripts/seed.py` + `.env.example` — register the service client**
+- [x] **6. `scripts/seed.py` + `.env.example` — register the service client**
   - Add `service-client` to the clients seeded in `seed.py`:
     - `client_id=service-client`, `client_secret=service-client-secret`
     - `allowed_grant_types=["client_credentials"]`, `allowed_scopes=["read:stats"]`
+  - Also seed `web-client` (authorization_code) and test users (alice, bob, charlie)
   - Add `SERVICE_CLIENT_ID`, `SERVICE_CLIENT_SECRET`, `SERVICE_CLIENT_SCOPES` to `.env.example`
+
+- [ ] **7. `tests/auth_server/test_token_endpoint.py` — auth server unit tests**
+  - Test `grant_type=client_credentials`: token returned, no `refresh_token` in response
+  - Test `grant_type=authorization_code`: PKCE verification, one-time code use
+  - Test invalid client credentials → 401
+  - Test wrong grant type for client → 403
+  - Stub file already created; needs real implementation
+
+- [ ] **8. `client-app/` — Flask browser app (Authorization Code flow demo)**
+  - `auth.py`: PKCE generation, state param, `/authorize` redirect, `/callback` code exchange, token refresh
+  - `routes.py`: `/`, `/callback`, `/profile`, `/logout`
+  - `templates/`: login page, profile page
+  - `config.py`, `main.py`, `requirements.txt`
+  - This is the user-facing counterpart to `scripts/service_client.py`
+
+- [ ] **9. `tests/e2e/` — end-to-end tests (require `make up`)**
+  - `test_client_credentials_flow.py`: POST /token → GET /api/service/stats → assert 200 and correct body
+  - `test_auth_code_flow.py`: simulate full browser flow programmatically
+  - Stub files already created; needs real implementation once services are running
