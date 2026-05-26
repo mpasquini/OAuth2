@@ -49,7 +49,7 @@ Docs (README.md + AGENTS.md) are already updated. Work through these in order �
   - Test wrong grant type for client → 403
   - Stub file already created; needs real implementation
 
-- [ ] **8. `client-app/` — Flask browser app (Authorization Code flow demo)**
+- [x] **8. `client-app/` — Flask browser app (Authorization Code flow demo)**
   - `auth.py`: PKCE generation, state param, `/authorize` redirect, `/callback` code exchange, token refresh
   - `routes.py`: `/`, `/callback`, `/profile`, `/logout`
   - `templates/`: login page, profile page

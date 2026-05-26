@@ -1,11 +1,13 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
+from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, Form, HTTPException
+from fastapi import APIRouter, Depends, Form, HTTPException, Query
+from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 
-from config import ACCESS_TOKEN_EXPIRE_MINUTES
+from config import ACCESS_TOKEN_EXPIRE_MINUTES, AUTHORIZATION_CODE_EXPIRE_MINUTES
 from database import get_db
 from models import AuthorizationCode, OAuthClient, Token, User
 from security import (
@@ -19,6 +21,162 @@ from security import (
 
 router = APIRouter()
 
+
+# ---------------------------------------------------------------------------
+# GET /authorize — show login form (RFC 6749 §4.1.1)
+# POST /authorize — validate credentials and issue auth code (RFC 6749 §4.1.2)
+# ---------------------------------------------------------------------------
+
+def _login_page(
+    client_id: str,
+    redirect_uri: str,
+    scope: str,
+    state: str,
+    code_challenge: str | None,
+    code_challenge_method: str,
+    error: str | None = None,
+) -> str:
+    """Return a minimal HTML login form. Hidden fields carry OAuth2 params through POST."""
+    error_html = f'<p class="error">{error}</p>' if error else ""
+    challenge_field = (
+        f'<input type="hidden" name="code_challenge" value="{code_challenge}">'
+        f'<input type="hidden" name="code_challenge_method" value="{code_challenge_method}">'
+        if code_challenge else ""
+    )
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Sign in — OAuth2 Auth Server</title>
+  <style>
+    body {{ font-family: system-ui, sans-serif; max-width: 380px; margin: 80px auto; padding: 0 1rem; color: #222; }}
+    h1 {{ font-size: 1.4rem; margin-bottom: 0.25rem; }}
+    .subtitle {{ color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }}
+    label {{ display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.25rem; }}
+    input[type=text], input[type=password] {{
+      width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px;
+      font-size: 1rem; box-sizing: border-box; margin-bottom: 1rem;
+    }}
+    button {{ width: 100%; padding: 0.6rem; background: #2563eb; color: #fff;
+      border: none; border-radius: 4px; font-size: 1rem; cursor: pointer; }}
+    button:hover {{ background: #1d4ed8; }}
+    .error {{ color: #dc2626; font-size: 0.9rem; margin-bottom: 1rem; }}
+    .scope-box {{ background: #f1f5f9; border-radius: 4px; padding: 0.75rem; margin-bottom: 1.25rem; font-size: 0.85rem; }}
+    .scope-box strong {{ display: block; margin-bottom: 0.25rem; }}
+  </style>
+</head>
+<body>
+  <h1>Sign in</h1>
+  <p class="subtitle">Client <code>{client_id}</code> is requesting access.</p>
+  <div class="scope-box">
+    <strong>Requested scopes:</strong> {scope or "(none)"}
+  </div>
+  {error_html}
+  <form method="post" action="/authorize">
+    <input type="hidden" name="client_id" value="{client_id}">
+    <input type="hidden" name="redirect_uri" value="{redirect_uri}">
+    <input type="hidden" name="scope" value="{scope}">
+    <input type="hidden" name="state" value="{state}">
+    {challenge_field}
+    <label for="username">Username</label>
+    <input type="text" id="username" name="username" required autofocus>
+    <label for="password">Password</label>
+    <input type="password" id="password" name="password" required>
+    <button type="submit">Sign in</button>
+  </form>
+</body>
+</html>"""
+
+
+def _error_page(error: str, description: str) -> str:
+    return f"""<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="utf-8"><title>Error — OAuth2 Auth Server</title>
+<style>body{{font-family:system-ui,sans-serif;max-width:480px;margin:80px auto;padding:0 1rem;}}
+.box{{background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;padding:1.25rem;}}
+h1{{color:#dc2626;font-size:1.2rem;margin:0 0 0.5rem;}}p{{margin:0;color:#555;font-size:0.9rem;}}</style>
+</head><body>
+<div class="box"><h1>{error}</h1><p>{description}</p></div>
+</body></html>"""
+
+
+@router.get("/authorize", response_class=HTMLResponse)
+def authorize_get(
+    response_type: str = Query(...),
+    client_id: str = Query(...),
+    redirect_uri: str = Query(...),
+    scope: str = Query(""),
+    state: str = Query(""),
+    code_challenge: str | None = Query(None),
+    code_challenge_method: str = Query("S256"),
+    db: Session = Depends(get_db),
+):
+    """Display the login form. Validates client params before showing the form."""
+    if response_type != "code":
+        return HTMLResponse(_error_page("unsupported_response_type", "Only response_type=code is supported"), status_code=400)
+    client = db.query(OAuthClient).filter(OAuthClient.client_id == client_id).first()
+    if not client:
+        return HTMLResponse(_error_page("invalid_client", f"Unknown client_id: {client_id!r}"), status_code=400)
+    if redirect_uri not in (client.redirect_uris or []):
+        return HTMLResponse(_error_page("invalid_request", "redirect_uri is not registered for this client"), status_code=400)
+    if not client.allows_grant_type("authorization_code"):
+        return HTMLResponse(_error_page("unauthorized_client", "This client may not use the authorization_code flow"), status_code=400)
+    return HTMLResponse(_login_page(client_id, redirect_uri, scope, state, code_challenge, code_challenge_method))
+
+
+@router.post("/authorize")
+def authorize_post(
+    username: str = Form(...),
+    password: str = Form(...),
+    client_id: str = Form(...),
+    redirect_uri: str = Form(...),
+    scope: str = Form(""),
+    state: str = Form(""),
+    code_challenge: str | None = Form(None),
+    code_challenge_method: str = Form("S256"),
+    db: Session = Depends(get_db),
+):
+    """Process the login form. On success, redirect to client with auth code."""
+    client = db.query(OAuthClient).filter(OAuthClient.client_id == client_id).first()
+    if not client or redirect_uri not in (client.redirect_uris or []):
+        return HTMLResponse(_error_page("invalid_request", "Invalid client or redirect_uri"), status_code=400)
+
+    def _redirect_error(error: str, description: str) -> RedirectResponse:
+        qs = urlencode({"error": error, "error_description": description, "state": state})
+        return RedirectResponse(f"{redirect_uri}?{qs}", status_code=302)
+
+    user = db.query(User).filter(User.username == username).first()
+    if not user or not verify_value(password, user.password_hash):
+        return HTMLResponse(
+            _login_page(client_id, redirect_uri, scope, state, code_challenge, code_challenge_method, error="Invalid username or password"),
+            status_code=401,
+        )
+
+    if scope and not client.allows_scope(scope):
+        return _redirect_error("invalid_scope", "One or more requested scopes are not allowed for this client")
+
+    granted_scope = scope or " ".join(client.allowed_scopes or [])
+    code = generate_code()
+    auth_code = AuthorizationCode(
+        code=code,
+        scope=granted_scope,
+        redirect_uri=redirect_uri,
+        code_challenge=code_challenge,
+        code_challenge_method=code_challenge_method if code_challenge else None,
+        expires_at=datetime.now(timezone.utc) + timedelta(minutes=AUTHORIZATION_CODE_EXPIRE_MINUTES),
+        client_id=client.id,
+        user_id=user.id,
+    )
+    db.add(auth_code)
+    db.commit()
+
+    qs = urlencode({"code": code, "state": state})
+    return RedirectResponse(f"{redirect_uri}?{qs}", status_code=302)
+
+
+# ---------------------------------------------------------------------------
+# Helpers for other endpoints
+# ---------------------------------------------------------------------------
 
 def _oauth2_error(error: str, description: str, status_code: int = 400):
     raise HTTPException(

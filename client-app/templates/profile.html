@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% set logged_in = true %}
+
+{% block title %}Profile{% endblock %}
+
+{% block content %}
+<h1>Profile</h1>
+
+{# ── Token claims ────────────────────────────────────────────────────────── #}
+<div class="card">
+  <h2>JWT access token claims</h2>
+  <p style="font-size:0.8rem;color:#64748b;margin:-0.5rem 0 1rem;">
+    Decoded without verifying the signature — for learning purposes only.
+    In production, always verify on the server side.
+  </p>
+  <table>
+    <tr><th>sub</th><td>{{ claims.sub }}</td></tr>
+    <tr><th>token_type</th><td>{{ claims.token_type }}</td></tr>
+    <tr><th>scope</th><td>{{ claims.scope }}</td></tr>
+    <tr><th>iat (issued at)</th><td>{{ claims.iat }}</td></tr>
+    <tr><th>exp (expires at)</th><td>{{ claims.exp }}</td></tr>
+  </table>
+</div>
+
+{# ── Resource server response ────────────────────────────────────────────── #}
+<div class="card">
+  <h2>Resource server — /api/user/profile</h2>
+  {% if resource_error %}
+    <div class="error-box">Could not reach resource server: {{ resource_error }}</div>
+  {% else %}
+    <table>
+      {% for k, v in user_data.items() %}
+      <tr><th>{{ k }}</th><td>{{ v }}</td></tr>
+      {% endfor %}
+    </table>
+  {% endif %}
+</div>
+
+{# ── Granted scopes ──────────────────────────────────────────────────────── #}
+<div class="card">
+  <h2>Granted scopes</h2>
+  <p style="font-size:0.9rem;">
+    {% for s in scope.split() %}
+      <code>{{ s }}</code>&nbsp;
+    {% endfor %}
+  </p>
+</div>
+
+{# ── Actions ─────────────────────────────────────────────────────────────── #}
+<div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+  {% if has_refresh %}
+    <a href="/refresh" class="btn btn-secondary">Refresh token</a>
+  {% endif %}
+  <a href="/logout" class="btn btn-danger">Logout</a>
+</div>
+{% endblock %}
