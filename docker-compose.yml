@@ -70,8 +70,6 @@ services:
       DEBUG: ${DEBUG:-true}
     depends_on:
       - auth-server
-    volumes:
-      - ./resource-server:/app
     networks:
       - oauth2-network
     restart: unless-stopped

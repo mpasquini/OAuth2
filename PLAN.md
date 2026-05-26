@@ -92,7 +92,7 @@ Docs (README.md + AGENTS.md) are already updated. Work through these in order �
     3. `exec uvicorn main:app --host 0.0.0.0 --port ${AUTH_SERVER_PORT:-5000}`
   - `CMD ["/app/entrypoint.sh"]`
 
-- [ ] **12. `resource-server/Dockerfile`**
+- [x] **12. `resource-server/Dockerfile`**
   - Base image: `python:3.12-slim`
   - No DB migrations or seed needed — stateless service
   - Pattern: copy `requirements.txt` → pip install → copy source → non-root user
