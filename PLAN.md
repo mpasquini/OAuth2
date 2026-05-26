@@ -35,8 +35,10 @@ Docs (README.md + AGENTS.md) are already updated. Work through these in order �
   - Step 4: Print the response
   - Add `demo-cc` and `test-e2e-cc` targets to `Makefile`
 
-- [ ] **6. `scripts/seed.py` + `.env.example` — register the service client**
+- [x] **6. `scripts/seed.py` + `.env.example` — register the service client**
   - Add `service-client` to the clients seeded in `seed.py`:
     - `client_id=service-client`, `client_secret=service-client-secret`
     - `allowed_grant_types=["client_credentials"]`, `allowed_scopes=["read:stats"]`
+  - Also seed `web-client` (authorization_code) and test users (alice, bob, charlie)
   - Add `SERVICE_CLIENT_ID`, `SERVICE_CLIENT_SECRET`, `SERVICE_CLIENT_SCOPES` to `.env.example`
+

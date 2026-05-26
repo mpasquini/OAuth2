@@ -88,6 +88,10 @@ seed:
 	docker-compose exec auth-server python scripts/seed.py
 	@echo "Database seeded with test data"
 
+seed-local:
+	python scripts/seed.py
+	@echo "Local database seeded"
+
 # Testing
 test:
 	pytest tests/ -v --cov=. --cov-report=html
