@@ -1,4 +1,4 @@
-.PHONY: help install setup-env up down logs dev test test-auth test-resource test-client test-e2e test-e2e-cc demo-cc coverage migrate clean build
+.PHONY: help install setup-env up down logs dev test test-auth test-resource test-client test-e2e test-e2e-cc demo-cc coverage migrate seed seed-local clean build
 
 help:
 	@echo "OAuth2 Development Commands"
@@ -26,7 +26,8 @@ help:
 	@echo ""
 	@echo "Database:"
 	@echo "  make migrate        Run database migrations"
-	@echo "  make seed           Seed database with test data"
+	@echo "  make seed           Seed database with test data (Docker)"
+	@echo "  make seed-local     Seed local SQLite database (no Docker)"
 	@echo ""
 	@echo "Cleanup:"
 	@echo "  make clean          Remove containers and volumes"
@@ -94,7 +95,9 @@ seed-local:
 
 # Testing
 test:
-	pytest tests/ -v --cov=. --cov-report=html
+	pytest -v tests/
+	@echo ""
+	@echo "All tests completed. Use 'make coverage' to generate a detailed report."
 
 test-auth:
 	pytest tests/auth_server/ -v
@@ -115,7 +118,7 @@ demo-cc:
 	python scripts/service_client.py
 
 coverage:
-	pytest tests/ --cov=. --cov-report=html --cov-report=term
+	coverage report -m && coverage html #TODO review report output
 	@echo ""
 	@echo "Coverage report generated in htmlcov/index.html"
 
