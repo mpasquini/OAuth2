@@ -42,7 +42,7 @@ Docs (README.md + AGENTS.md) are already updated. Work through these in order �
   - Also seed `web-client` (authorization_code) and test users (alice, bob, charlie)
   - Add `SERVICE_CLIENT_ID`, `SERVICE_CLIENT_SECRET`, `SERVICE_CLIENT_SCOPES` to `.env.example`
 
-- [ ] **7. `tests/auth_server/test_token_endpoint.py` — auth server unit tests**
+- [x] **7. `tests/auth_server/test_token_endpoint.py` — auth server unit tests**
   - Test `grant_type=client_credentials`: token returned, no `refresh_token` in response
   - Test `grant_type=authorization_code`: PKCE verification, one-time code use
   - Test invalid client credentials → 401
