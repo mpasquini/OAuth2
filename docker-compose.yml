@@ -11,8 +11,6 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-oauth2_password}
     ports:
       - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     networks:
       - oauth2-network
     healthcheck:
