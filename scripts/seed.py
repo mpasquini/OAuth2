@@ -16,7 +16,12 @@ import sys
 from pathlib import Path
 
 # Allow importing from auth-server without installing the package.
+# Local dev: script lives at repo/scripts/seed.py → auth-server is at repo/auth-server/
+# Docker:    script is COPYed to /app/scripts/seed.py and auth-server files are COPYed
+#            directly to /app/ (not /app/auth-server/), so fall back to the parent dir.
 AUTH_SERVER = Path(__file__).parent.parent / "auth-server"
+if not AUTH_SERVER.is_dir():
+    AUTH_SERVER = Path(__file__).parent.parent
 sys.path.insert(0, str(AUTH_SERVER))
 
 import bcrypt

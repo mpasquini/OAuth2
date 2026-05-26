@@ -11,8 +11,6 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD:-oauth2_password}
     ports:
       - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
     networks:
       - oauth2-network
     healthcheck:
@@ -24,8 +22,8 @@ services:
   # Authorization Server
   auth-server:
     build:
-      context: ./auth-server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: auth-server/Dockerfile
     container_name: oauth2-auth-server
     ports:
       - "5000:${AUTH_SERVER_PORT:-5000}"
@@ -34,6 +32,7 @@ services:
       AUTH_SERVER_PORT: ${AUTH_SERVER_PORT:-5000}
       AUTH_SERVER_URL: ${AUTH_SERVER_URL:-http://localhost:5000}
       AUTH_SERVER_SECRET_KEY: ${AUTH_SERVER_SECRET_KEY:-dev-secret-key}
+      DATABASE_URL: postgresql://${DB_USER:-oauth2_user}:${DB_PASSWORD:-oauth2_password}@postgres:5432/${DB_NAME:-oauth2}
       DB_HOST: postgres
       DB_PORT: 5432
       DB_NAME: ${DB_NAME:-oauth2}
@@ -46,8 +45,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    volumes:
-      - ./auth-server:/app
     networks:
       - oauth2-network
     restart: unless-stopped
@@ -71,8 +68,6 @@ services:
       DEBUG: ${DEBUG:-true}
     depends_on:
       - auth-server
-    volumes:
-      - ./resource-server:/app
     networks:
       - oauth2-network
     restart: unless-stopped
@@ -93,16 +88,14 @@ services:
       OAUTH2_CLIENT_ID: ${OAUTH2_CLIENT_ID:-web-client}
       OAUTH2_CLIENT_SECRET: ${OAUTH2_CLIENT_SECRET:-web-client-secret}
       OAUTH2_REDIRECT_URI: ${OAUTH2_REDIRECT_URI:-http://localhost:5001/callback}
-      OAUTH2_AUTHORIZE_URL: http://auth-server:${AUTH_SERVER_PORT:-5000}/authorize
+      OAUTH2_AUTHORIZE_URL: http://localhost:${AUTH_SERVER_PORT:-5000}/authorize
       OAUTH2_TOKEN_URL: http://auth-server:${AUTH_SERVER_PORT:-5000}/token
-      OAUTH2_USERINFO_URL: http://auth-server:${AUTH_SERVER_PORT:-5000}/userinfo
-      RESOURCE_SERVER_URL: http://resource-server:${RESOURCE_SERVER_PORT:-5002}/api
+      OAUTH2_REFRESH_URL: http://auth-server:${AUTH_SERVER_PORT:-5000}/refresh
+      RESOURCE_SERVER_URL: http://resource-server:${RESOURCE_SERVER_PORT:-5002}
       ENV: ${ENV:-development}
       DEBUG: ${DEBUG:-true}
     depends_on:
       - auth-server
-    volumes:
-      - ./client-app:/app
     networks:
       - oauth2-network
     restart: unless-stopped

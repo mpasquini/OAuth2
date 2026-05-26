@@ -63,6 +63,95 @@ Docs (README.md + AGENTS.md) are already updated. Work through these in order �
 
 ---
 
+## Docker
+
+`docker-compose.yml` already references all three Dockerfiles. Work through these in order.
+
+- [x] **10. Shared `.dockerignore` (root-level)**
+  - Prevents large directories from being sent as build context:
+    ```
+    graphify-out/
+    __pycache__/
+    *.pyc
+    *.db
+    .env
+    .git/
+    tests/
+    htmlcov/
+    .pytest_cache/
+    ```
+
+- [x] **11. `auth-server/Dockerfile` + `auth-server/entrypoint.sh`**
+  - Base image: `python:3.12-slim` (stable; avoids bleeding-edge 3.14 compat issues)
+  - Install system deps needed by `bcrypt` C extension: `gcc libffi-dev`
+  - Copy `requirements.txt` first (layer-cache pip install before copying source)
+  - `WORKDIR /app`, copy source, create non-root user (`appuser`) and `chown`
+  - `entrypoint.sh` runs before uvicorn:
+    1. `alembic upgrade head` — applies all pending migrations
+    2. `python scripts/seed.py` — idempotent; safe to run on every start
+    3. `exec uvicorn main:app --host 0.0.0.0 --port ${AUTH_SERVER_PORT:-5000}`
+  - `CMD ["/app/entrypoint.sh"]`
+
+- [x] **12. `resource-server/Dockerfile`**
+  - Base image: `python:3.12-slim`
+  - No DB migrations or seed needed — stateless service
+  - Pattern: copy `requirements.txt` → pip install → copy source → non-root user
+  - `CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5002"]`
+  - Port read from `RESOURCE_SERVER_PORT` env var; override in compose if needed
+
+- [x] **13. `client-app/Dockerfile`**
+  - Base image: `python:3.12-slim`
+  - Flask is pure Python — no C extensions, no extra system packages needed
+  - Pattern: copy `requirements.txt` → pip install → copy source → non-root user
+  - `CMD ["python", "main.py"]` (Flask dev server; swap for gunicorn in production)
+  - `EXPOSE 5001`
+
+- [ ] **14. `docker-compose.dev.yml` — hot-reload override**
+  - Referenced by `make dev` (`docker-compose -f docker-compose.yml -f docker-compose.dev.yml up`)
+  - Override each service to mount source and enable reload:
+    ```yaml
+    services:
+      auth-server:
+        command: uvicorn main:app --host 0.0.0.0 --port 5000 --reload
+        volumes: [./auth-server:/app]
+      resource-server:
+        command: uvicorn main:app --host 0.0.0.0 --port 5002 --reload
+        volumes: [./resource-server:/app]
+      client-app:
+        command: python main.py          # Flask debug=True handles reload
+        environment:
+          FLASK_ENV: development
+        volumes: [./client-app:/app]
+    ```
+  - Source volume mounts already exist in `docker-compose.yml` for all three services,
+    so the only additions here are the `--reload` commands and `FLASK_ENV`
+
+- [ ] **15. TLS for auth-server via Caddy reverse proxy**
+  - Add a `caddy` service to `docker-compose.yml` that terminates TLS in front of `auth-server`
+  - Write `Caddyfile` at repo root:
+    ```
+    https://localhost {
+        tls internal          # Caddy issues a self-signed cert; browser will warn once
+        reverse_proxy auth-server:{$AUTH_SERVER_PORT:-5000}
+    }
+    ```
+  - `docker-compose.yml` changes:
+    - Add `caddy` service: image `caddy:2-alpine`, ports `443:443` and `80:80`,
+      bind-mount `./Caddyfile:/etc/caddy/Caddyfile` and a named volume `caddy_data:/data`
+    - Add `caddy_data` to the top-level `volumes` block
+    - `auth-server` no longer needs to publish port 5000 externally (traffic enters via Caddy)
+    - Set `AUTH_SERVER_URL=https://localhost` in auth-server environment
+  - Update `CORS_ORIGINS` default in `auth-server/config.py` to include `https://localhost:5001`
+  - Update `OAUTH2_AUTHORIZE_URL` / `OAUTH2_TOKEN_URL` in client-app environment to
+    `https://localhost/authorize` and `https://localhost/token`
+  - Once TLS is in place, the RFC 9700 §4.1.3 check (block `http://` redirect URIs for
+    non-localhost clients) becomes meaningful — implement it alongside this step:
+    in `authorize_get`, reject any `http://` redirect URI whose host is not `127.0.0.1`,
+    `::1`, or `localhost`
+  - Remove the "TLS enforcement end-to-end" row from the RFC 9700 out-of-scope table
+
+---
+
 ## RFC 9700 Security Review
 
 Audit against [OAuth 2.0 Security Best Current Practice (RFC 9700)](https://datatracker.ietf.org/doc/html/rfc9700).
@@ -70,7 +159,7 @@ Each finding lists the RFC section, severity, exact file:line, and the fix requi
 
 ### Bugs (broken at runtime)
 
-- [ ] **Refresh token never persisted** — `auth-server/routes.py:305`
+- [x] **Refresh token never persisted** — `auth-server/routes.py:305`
   - `generate_code()` produces a refresh token and returns it in the response, but it is never
     written to the database. The `/refresh` endpoint at `routes.py:336` queries
     `Token.access_token == refresh_token`, which will never match — `/refresh` is effectively broken.

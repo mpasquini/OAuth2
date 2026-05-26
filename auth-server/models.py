@@ -106,6 +106,8 @@ class Token(Base):
 
     id = Column(Integer, primary_key=True)
     access_token = Column(Text, unique=True, nullable=False, index=True)
+    # Opaque random string for Authorization Code flow; NULL for Client Credentials.
+    refresh_token = Column(Text, unique=True, nullable=True, index=True)
     token_type = Column(String(16), nullable=False)  # "user" | "client"
     scope = Column(String(512), nullable=False, default="")
     expires_at = Column(DateTime, nullable=False)

@@ -63,7 +63,7 @@ up:
 	@echo "View logs with: make logs"
 
 down:
-	docker-compose down
+	docker-compose down --remove-orphans --rmi all --volumes
 
 logs:
 	docker-compose logs -f
