@@ -99,7 +99,7 @@ Docs (README.md + AGENTS.md) are already updated. Work through these in order �
   - `CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "5002"]`
   - Port read from `RESOURCE_SERVER_PORT` env var; override in compose if needed
 
-- [ ] **13. `client-app/Dockerfile`**
+- [x] **13. `client-app/Dockerfile`**
   - Base image: `python:3.12-slim`
   - Flask is pure Python — no C extensions, no extra system packages needed
   - Pattern: copy `requirements.txt` → pip install → copy source → non-root user
