@@ -135,7 +135,7 @@ Each finding lists the RFC section, severity, exact file:line, and the fix requi
 
 ### Bugs (broken at runtime)
 
-- [ ] **Refresh token never persisted** — `auth-server/routes.py:305`
+- [x] **Refresh token never persisted** — `auth-server/routes.py:305`
   - `generate_code()` produces a refresh token and returns it in the response, but it is never
     written to the database. The `/refresh` endpoint at `routes.py:336` queries
     `Token.access_token == refresh_token`, which will never match — `/refresh` is effectively broken.

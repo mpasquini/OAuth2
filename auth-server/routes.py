@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from sqlalchemy import text
 from sqlalchemy.orm import Session
 
-from config import ACCESS_TOKEN_EXPIRE_MINUTES, AUTHORIZATION_CODE_EXPIRE_MINUTES
+from config import ACCESS_TOKEN_EXPIRE_MINUTES, AUTHORIZATION_CODE_EXPIRE_MINUTES, REFRESH_TOKEN_EXPIRE_DAYS
 from database import get_db
 from models import AuthorizationCode, OAuthClient, Token, User
 from security import (
@@ -300,10 +300,20 @@ def _authorization_code(
             _oauth2_error("invalid_grant", "PKCE code_verifier does not match code_challenge")
 
     auth_code.used = True
-    db.commit()
 
     access_token = create_user_token(auth_code.user_id, auth_code.scope)
     refresh_token = generate_code()
+
+    db.add(Token(
+        access_token=access_token,
+        refresh_token=refresh_token,
+        token_type="user",
+        scope=auth_code.scope,
+        expires_at=datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS),
+        user_id=auth_code.user_id,
+        client_id=client.id,
+    ))
+    db.commit()
 
     return {
         "access_token": access_token,
@@ -334,7 +344,7 @@ def refresh_endpoint(
 
     stored = (
         db.query(Token)
-        .filter(Token.access_token == refresh_token, Token.client_id == client.id)
+        .filter(Token.refresh_token == refresh_token, Token.client_id == client.id)
         .first()
     )
     if not stored or stored.revoked:
@@ -343,12 +353,16 @@ def refresh_endpoint(
     if stored.expires_at.replace(tzinfo=timezone.utc) < datetime.now(timezone.utc):
         _oauth2_error("invalid_grant", "Refresh token has expired")
 
-    new_token = create_user_token(stored.user_id, stored.scope)
+    new_access_token = create_user_token(stored.user_id, stored.scope)
+    stored.access_token = new_access_token
+    db.commit()
+
     return {
-        "access_token": new_token,
+        "access_token": new_access_token,
         "token_type": "Bearer",
         "expires_in": ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         "scope": stored.scope,
+        "refresh_token": refresh_token,
     }
 
 
