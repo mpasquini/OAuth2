@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% set logged_in = logged_in %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<h1>Authorization Code + PKCE Demo</h1>
+<p style="color:#475569;margin-bottom:1.5rem;">
+  This app demonstrates the <strong>Authorization Code flow with PKCE</strong> (RFC 6749 §4.1 + RFC 7636).<br>
+  Click <em>Login</em> to be redirected to the authorization server, authenticate, and receive a JWT access token.
+</p>
+
+{% if error is defined and error %}
+<div class="error-box">{{ error }}</div>
+{% endif %}
+
+{% if logged_in %}
+  <div class="card">
+    <h2>You are logged in</h2>
+    <p><a href="/profile" class="btn btn-primary">View profile &amp; token claims</a></p>
+  </div>
+{% else %}
+  <div class="card">
+    <h2>Flow overview</h2>
+    <ol style="font-size:0.9rem;line-height:1.8;color:#334155;margin:0;padding-left:1.25rem;">
+      <li>Client generates <code>code_verifier</code> (random) and <code>code_challenge = SHA-256(verifier)</code></li>
+      <li>Browser redirects to auth server <code>/authorize</code> with challenge + <code>state</code></li>
+      <li>User logs in; auth server issues one-time <code>code</code> and redirects back</li>
+      <li>Client POSTs <code>code</code> + <code>code_verifier</code> to <code>/token</code>; receives JWT</li>
+      <li>Client calls resource server with <code>Bearer &lt;token&gt;</code></li>
+    </ol>
+  </div>
+  <a href="/login" class="btn btn-primary">Login with OAuth2</a>
+{% endif %}
+{% endblock %}
