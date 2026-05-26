@@ -126,6 +126,30 @@ Docs (README.md + AGENTS.md) are already updated. Work through these in order �
   - Source volume mounts already exist in `docker-compose.yml` for all three services,
     so the only additions here are the `--reload` commands and `FLASK_ENV`
 
+- [ ] **15. TLS for auth-server via Caddy reverse proxy**
+  - Add a `caddy` service to `docker-compose.yml` that terminates TLS in front of `auth-server`
+  - Write `Caddyfile` at repo root:
+    ```
+    https://localhost {
+        tls internal          # Caddy issues a self-signed cert; browser will warn once
+        reverse_proxy auth-server:{$AUTH_SERVER_PORT:-5000}
+    }
+    ```
+  - `docker-compose.yml` changes:
+    - Add `caddy` service: image `caddy:2-alpine`, ports `443:443` and `80:80`,
+      bind-mount `./Caddyfile:/etc/caddy/Caddyfile` and a named volume `caddy_data:/data`
+    - Add `caddy_data` to the top-level `volumes` block
+    - `auth-server` no longer needs to publish port 5000 externally (traffic enters via Caddy)
+    - Set `AUTH_SERVER_URL=https://localhost` in auth-server environment
+  - Update `CORS_ORIGINS` default in `auth-server/config.py` to include `https://localhost:5001`
+  - Update `OAUTH2_AUTHORIZE_URL` / `OAUTH2_TOKEN_URL` in client-app environment to
+    `https://localhost/authorize` and `https://localhost/token`
+  - Once TLS is in place, the RFC 9700 §4.1.3 check (block `http://` redirect URIs for
+    non-localhost clients) becomes meaningful — implement it alongside this step:
+    in `authorize_get`, reject any `http://` redirect URI whose host is not `127.0.0.1`,
+    `::1`, or `localhost`
+  - Remove the "TLS enforcement end-to-end" row from the RFC 9700 out-of-scope table
+
 ---
 
 ## RFC 9700 Security Review
